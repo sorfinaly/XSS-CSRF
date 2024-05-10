@@ -1,4 +1,5 @@
 <?php
+include 'content-security-policy.php';
 session_start();
 
 
@@ -22,7 +23,7 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
     } elseif ($result->num_rows == 0){
         // No student found with the given email
         echo "<script>alert('No student found with the given email'); </script>";
-        // header("Location: form.html");
+        // header("Location: form.php");
         exit();
         
     } 
@@ -37,6 +38,7 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Details</title>
 
@@ -134,6 +136,8 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
           <tr><td class="detail-label">Mobile Phone:</td><td class="detail-value"><?php echo $student['mobilephone']; ?></td></tr>
           <tr><td class="detail-label">Home Phone:</td><td class="detail-value"><?php echo $student['homephone']; ?></td></tr>
         </table>
+
+
       <?php else: ?>
         <p class="error-message">No student details found.</p>
       <?php endif; ?>
@@ -150,11 +154,13 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
 
 
 <script>
+var csrfToken = "<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>";
+
 document.getElementById('update-btn').addEventListener('click', function() {
-    // Redirect to the form.html page with the ID parameter
+    // Redirect to the form.php page with the ID parameter
     var id = <?php echo isset($_GET['id']) ? $_GET['id'] : 'null'; ?>;
     if (id !== null) {
-        window.location.href = 'form.html?id=' + id;
+        window.location.href = 'form.php?id=' + id;
     } else {
         alert("No student ID found.");
     }
@@ -162,8 +168,9 @@ document.getElementById('update-btn').addEventListener('click', function() {
 
 document.getElementById('delete-btn').addEventListener('click', function() {
         // Perform AJAX request to delete student
-        fetch("crud.php?id=<?php echo $student['id']; ?>", {
+        fetch("crud.php?id=<?php echo $student['id']; ?>&csrf_token=" + csrfToken, {
             method: "DELETE",
+         
         })
         .then(response => response.json())
         .then(data => {

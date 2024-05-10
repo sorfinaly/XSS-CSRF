@@ -1,5 +1,6 @@
 <?php
 // Start the session
+include 'content-security-policy.php';
 session_start();
 
 session_unset(); // remove all stored values in session variables

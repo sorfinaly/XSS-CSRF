@@ -1,5 +1,6 @@
 <?php
 session_start();
+include 'content-security-policy.php';
 include 'db.php'; // Include database connection
 
 // Handle form submission

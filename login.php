@@ -1,5 +1,6 @@
 <?php
 session_start();
+include 'content-security-policy.php';
 include 'db.php'; // Include database connection
 
 // Check if email and password are set in $_POST
@@ -30,6 +31,11 @@ if (isset($_POST['email'], $_POST['password'])) {
             $_SESSION['user_password'] = $user['password'];
             $_SESSION['role_id'] = $user['role_id'];
 
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+            echo($_SESSION['csrf_token']);
+
+
             $stmt = $mysqli->prepare("SELECT id FROM students WHERE login_id = ?");
             $stmt->bind_param("i", $_SESSION['user_id']);
             $stmt->execute();
@@ -41,12 +47,9 @@ if (isset($_POST['email'], $_POST['password'])) {
                 header("Location: student_details.php?id=$student_id");
                 exit();
             } else {
-                header("Location: form.html");
+                header("Location: form.php");
                 exit();
             }
-            // Display user ID for testing purposes
-            echo "User ID: " . $_SESSION['user_id'];
-            echo "Student ID: " . $_SESSION['student_id'];
 
 
         } else {
