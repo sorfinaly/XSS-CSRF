@@ -6,10 +6,6 @@ session_start();
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
-  ">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Details</title>
 
@@ -180,6 +176,7 @@ textarea.form__input {
     </div>
     
     <input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] : ''; ?>">
+    <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
     <div class="form__item">
 
@@ -251,6 +248,7 @@ textarea.form__input {
     });
   }
 
+  var csrfToken = "<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>";
   // function generateCsrfToken() {
   //   // Generate a random token
   //   var token = '';
@@ -331,6 +329,9 @@ document.getElementById('studentform').addEventListener('submit', function(event
   // Check if ID parameter is present in URL
   var urlParams = new URLSearchParams(window.location.search);
   var id = urlParams.get('id');
+
+  // Set CSRF token in form data
+  formData.append('csrf_token', csrfToken);
 
   // Set ID in form data if present
   if (id) {

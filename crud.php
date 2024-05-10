@@ -1,27 +1,22 @@
 <?php
 
 include 'db.php';
-include 'content-security-policy.php';
 session_start();
-
-
 
 // Check if the request method is DELETE
 if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
+
+
+     // Validate CSRF Token
+     if ($_GET['csrf_token'] !== $_SESSION['csrf_token']) {
+        // Invalid CSRF Token, reject the request
+        http_response_code(403); // Set response status code to 403 (Forbidden)
+        echo json_encode(array("success" => false, "message" => "CSRF Token Validation Failed"));
+        exit();
+    }
+
     // Check if an ID parameter is provided in the URL
     if (isset($_GET['id'])) {
-        // Validate CSRF Token
-
-        if ($_GET['csrf_token'] !== $_SESSION['csrf_token']) {
-            // Invalid CSRF Token, reject the request
-            echo ($csrfToken."\n");
-            echo ($_POST['csrf_token']."\n");
-            echo ($_SESSION['csrf_token']."\n");
-            http_response_code(403); // Set response status code to 403 (Forbidden)
-            echo json_encode(array("success" => false, "message" => "CSRF Token Validation Failed"));
-            exit();
-        }
-
         $id = $_GET['id'];
         if ($_SESSION['role_id'] == 1 ) {
             // Only allow deletion if the user is an admin
@@ -39,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
             exit();
         } else {
             // Deletion failed
-            echo json_encode(array("success" => false));
+            $error = $stmt->error;
+            echo json_encode(array("success" => false, "message" => "Deletion failed: $error"));
             exit();
         }
     } else {
@@ -47,18 +43,14 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
         echo json_encode(array("success" => false, "message" => "No ID provided"));
         exit();
     }
-
 } elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Check if the request method is POST
 
-    // Validate CSRF Token
-    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+     // Validate CSRF Token
+     if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo($_POST['csrf_token']);
+        echo($_SESSION['csrf_token']);
         // Invalid CSRF Token, reject the request
         http_response_code(403); // Set response status code to 403 (Forbidden)
-
-        echo ($csrfToken."\n");
-        echo ($_POST['csrf_token']."\n");
-        echo ($_SESSION['csrf_token']."\n");
         echo json_encode(array("success" => false, "message" => "CSRF Token Validation Failed"));
         exit();
     }
@@ -73,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
     $homephone = validateInput($_POST['homephone'], "/^\d{3}[\-]\d{3}[\-]\d{4}$/", "Invalid home phone number");
 
     // Check if an ID parameter is provided
-    if (isset($_POST['id'])) {
+    if (isset($_POST['id']) && !empty($_POST['id'])) {
         // Update record
 
         $id = $_POST['id'];
@@ -90,39 +82,42 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
 
         // Execute the prepared statement
         if ($stmt->execute()) {
-            // Update successful
+            // Insertion successful
             echo json_encode(array("success" => true));
-            header("Location: student_details.php?id=$id");
+            $inserted_id = $mysqli->insert_id;
+
+            header("Location: student_details.php?id=$inserted_id");
             exit();
         } else {
             // Update failed
-            echo json_encode(array("success" => false));
+            $error = $stmt->error;
+            echo json_encode(array("success" => false, "message" => "Update failed: $error"));
             exit();
         }
     } else {
         // Insert record
 
         if ($_SESSION['role_id'] == 1 ) {
-            // Only allow deletion if the user is an admin
             echo json_encode(array("success" => false, "message" => "Unauthorized"));
             exit();
         }
 
         // Prepare a SQL statement to insert the student record
-        $stmt = $mysqli->prepare("INSERT INTO students (name, matricno, curraddress, homeaddress, email, mobilephone, homephone) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssss", $name, $matricno, $curraddress, $homeaddress, $email, $mobilephone, $homephone);
+        $stmt = $mysqli->prepare("INSERT INTO students (name, matricno, curraddress, homeaddress, email, mobilephone, homephone, login_id, role_id) VALUES (?, ?, ?, ?, ?, ?, ?,?,?)");
+        $stmt->bind_param("sssssssii", $name, $matricno, $curraddress, $homeaddress, $email, $mobilephone, $homephone, $_SESSION['user_id'], $_SESSION['role_id']);
 
         // Execute the prepared statement
         if ($stmt->execute()) {
             // Insertion successful
             echo json_encode(array("success" => true));
             $inserted_id = $mysqli->insert_id;
-    
+
             header("Location: student_details.php?id=$inserted_id");
             exit();
         } else {
             // Insertion failed
-            echo json_encode(array("success" => false));
+            $error = $stmt->error;
+            echo json_encode(array("success" => false, "message" => "Insertion failed: $error"));
             exit();
         }
     }
@@ -144,7 +139,6 @@ function validateInput($input, $pattern, $error_message) {
         exit(); // Terminate script execution
     }
 }
-
 
 
 

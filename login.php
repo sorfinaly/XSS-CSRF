@@ -32,7 +32,7 @@ if (isset($_POST['email'], $_POST['password'])) {
 
             echo($_SESSION['csrf_token']);
 
-
+            
             $stmt = $mysqli->prepare("SELECT id FROM students WHERE login_id = ?");
             $stmt->bind_param("i", $_SESSION['user_id']);
             $stmt->execute();
@@ -44,7 +44,7 @@ if (isset($_POST['email'], $_POST['password'])) {
                 header("Location: student_details.php?id=$student_id");
                 exit();
             } else {
-                header("Location: form.html");
+                header("Location: form.php");
             //     exit();
             }
             // Display user ID for testing purposes
@@ -54,7 +54,7 @@ if (isset($_POST['email'], $_POST['password'])) {
 
 
             if(($_SESSION['student_id']) == null){
-                header("Location: form.html");
+                header("Location: form.php");
                 exit();
             } else {
                 header("Location: student_details.php?id=$student_id");

@@ -23,7 +23,7 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
     } elseif ($result->num_rows == 0){
         // No student found with the given email
         // echo "<script>alert('No student found with the given email'); </script>";
-        header("Location: form.html");
+        header("Location: form.php");
         exit();
         
     } 
@@ -38,7 +38,6 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Details</title>
 
