@@ -1,9 +1,15 @@
+<?php
+session_start();
+?>
 
-<!-- filename: form.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;
+  ">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Details</title>
 
@@ -173,6 +179,8 @@ textarea.form__input {
       <span class="form__error">eg: 010-123-5690</span>
     </div>
     
+    <!-- Include CSRF Token in Form -->
+    <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
     <div class="form__item">
 
@@ -183,39 +191,134 @@ textarea.form__input {
 
 <script>
 
-  document.querySelectorAll(".form__input, .form__textarea").forEach(function(input) {
-        const errorMessage = input.nextElementSibling; // Select the next sibling element (error message) of the input
+  // document.querySelectorAll(".form__input, .form__textarea").forEach(function(input) {
+  //       const errorMessage = input.nextElementSibling; // Select the next sibling element (error message) of the input
 
-        input.addEventListener("input", function() {
-            const pattern = input.getAttribute("pattern"); // Get the pattern attribute value of the input (if applicable)
-            const inputValue = input.value; // Get the value entered by the user
+  //       input.addEventListener("input", function() {
+  //           const pattern = input.getAttribute("pattern"); // Get the pattern attribute value of the input (if applicable)
+  //           const inputValue = input.value; // Get the value entered by the user
             
-            if (pattern && !new RegExp(pattern).test(inputValue)) {
-                input.classList.add("form__input--error"); // Add error class to input
-                errorMessage.style.visibility = "visible"; // Show error message
-            } else {
-                input.classList.remove("form__input--error"); // Remove error class from input
-                errorMessage.style.visibility = "hidden"; // Hide error message
-            }
-        });
+  //           if (pattern && !new RegExp(pattern).test(inputValue)) {
+  //               input.classList.add("form__input--error"); // Add error class to input
+  //               errorMessage.style.visibility = "visible"; // Show error message
+  //           } else {
+  //               input.classList.remove("form__input--error"); // Remove error class from input
+  //               errorMessage.style.visibility = "hidden"; // Hide error message
+  //           }
+  //       });
+  //   });
+
+  //   document.getElementById('studentform').addEventListener('submit', function(event) {
+  //     event.preventDefault(); // Prevent the default form submission
+
+  //     var formData = new FormData(this);
+
+  //     // Check if ID parameter is present in URL
+  //     var urlParams = new URLSearchParams(window.location.search);
+  //     var id = urlParams.get('id');
+
+  //     // Set ID in form data if present
+  //     if (id) {
+  //       formData.append('id', id);
+  //     }
+
+  //     // Send form data to crud.php for processing
+  //     fetch('crud.php', {
+  //       method: 'POST',
+  //       body: formData
+  //     })
+  //     .then(response => {
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       return response.text();
+  //     })
+  //     .then(data => {
+  //       // Handle success response
+  //       console.log('Response from server:', data);
+  //       // Redirect to student_details.php or any other page as per your requirement
+  //       window.location.href = 'student_details.php?id=' + id; // Redirect to student_details.php with ID parameter
+  //     })
+  //     .catch(error => {
+  //       // Handle network errors
+  //       console.error('There was an error with the network:', error);
+  //     });
+  //   });
+
+  // Function to dynamically encode user input before displaying it
+  function encodeHtmlEntities(input) {
+    return input.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
+      return '&#' + i.charCodeAt(0) + ';';
+    });
+  }
+
+  // function generateCsrfToken() {
+  //   // Generate a random token
+  //   var token = '';
+  //   var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  //   var charactersLength = characters.length;
+  //   for (var i = 0; i < 32; i++) {
+  //     token += characters.charAt(Math.floor(Math.random() * charactersLength));
+  //   }
+  //   return token;
+  // }
+
+  // Validate form inputs
+  function validateFormInputs() {
+    var isValid = true;
+    var inputs = document.querySelectorAll(".form__input, .form__textarea");
+
+    inputs.forEach(function(input) {
+      const errorMessage = input.nextElementSibling; // Select the next sibling element (error message) of the input
+      const pattern = input.getAttribute("pattern"); // Get the pattern attribute value of the input (if applicable)
+      const inputValue = input.value; // Get the value entered by the user
+
+      if (pattern && inputValue && !new RegExp(pattern).test(inputValue)) {
+        input.classList.add("form__input--error"); // Add error class to input
+        errorMessage.style.visibility = "visible"; // Show error message
+        isValid = false;
+      } else {
+        input.classList.remove("form__input--error"); // Remove error class from input
+        errorMessage.style.visibility = "hidden"; // Hide error message
+      }
     });
 
-    document.getElementById('studentform').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the default form submission
+    return isValid;
+  }
 
-      var formData = new FormData(this);
+  // Submit form with XSS defense and CSRF token
+  document.getElementById('studentform').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
 
-      // Check if ID parameter is present in URL
-      var urlParams = new URLSearchParams(window.location.search);
-      var id = urlParams.get('id');
+    // Validate form inputs
+    if (!validateFormInputs()) {
+      return; // Exit if form inputs are invalid
+    }
 
-      // Set ID in form data if present
-      if (id) {
-        formData.append('id', id);
-      }
+    var formData = new FormData(this);
 
-      // Send form data to crud.php for processing
-      fetch('crud.php', {
+    // Check if ID parameter is present in URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var id = urlParams.get('id');
+
+    // Set ID in form data if present
+    if (id) {
+      formData.append('id', id);
+    }
+
+    // Encode form data to prevent XSS attacks
+    for (var pair of formData.entries()) {
+      formData.set(pair[0], encodeHtmlEntities(pair[1]));
+    }
+
+    // Generate and append CSRF token
+    // var csrfToken = generateCsrfToken();
+    var csrfToken = document.getElementById('csrf_token').value;
+
+    formData.append('csrf_token', csrfToken);
+
+    // Send form data to crud.php for processing
+    fetch('crud.php', {
         method: 'POST',
         body: formData
       })
@@ -229,14 +332,13 @@ textarea.form__input {
         // Handle success response
         console.log('Response from server:', data);
         // Redirect to student_details.php or any other page as per your requirement
-        window.location.href = 'student_details.php?id=' + id; // Redirect to student_details.php with ID parameter
+        window.location.href = 'student_details.php?id=' + id; // Redirect as needed
       })
       .catch(error => {
         // Handle network errors
         console.error('There was an error with the network:', error);
       });
-    });
-
+  });
 
   </script>
 

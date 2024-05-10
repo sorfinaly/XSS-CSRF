@@ -2,6 +2,7 @@
 <?php
 //filename: db.php
 // Database configuration
+include 'content-security-policy.php';
 $dbHost = 'localhost';
 $dbUsername = 'admin';
 $dbPassword = 'admin';
