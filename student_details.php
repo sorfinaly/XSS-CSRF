@@ -22,8 +22,8 @@ if (isset($_SESSION['user_email']) && isset($_SESSION['user_password'])) {
         $student = $result->fetch_assoc();
     } elseif ($result->num_rows == 0){
         // No student found with the given email
-        echo "<script>alert('No student found with the given email'); </script>";
-        // header("Location: form.php");
+        // echo "<script>alert('No student found with the given email'); </script>";
+        header("Location: form.html");
         exit();
         
     } 
@@ -176,7 +176,7 @@ document.getElementById('delete-btn').addEventListener('click', function() {
         .then(data => {
             if (data && data.success) {
                 // Redirect to login page or do something else
-                window.location.href = "logout.php";
+                window.location.href = "index.html";
             } else {
                 // Deletion failed, log error or show message
                 alert("Deletion failed: Unable to delete student record.");

@@ -10,18 +10,15 @@ if (isset($_POST['email'], $_POST['password'])) {
     $password = $_POST['password'];
 
     // Retrieve user from database
-    $stmt = $mysqli->prepare("SELECT id, email, role_id, password FROM login WHERE email = ?");
+    $stmt = $mysqli->prepare("SELECT id, email, password FROM login WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    
 
     // Check if a row was returnedfetchStudentData()
     if ($result->num_rows == 1) {
         // Fetch the user's data
         $user = $result->fetch_assoc();
-
 
         // Verify password
         if (password_verify($password, $user['password'])) {
@@ -43,15 +40,29 @@ if (isset($_POST['email'], $_POST['password'])) {
             
             if ($result->num_rows == 1) {
                 $student_id = $result->fetch_assoc()['id'];
-                $_SESSION['student_id'] = $student_id; 
+                $_SESSION['student_id'] = $student_id; // Assuming you want to store student ID in session as well
                 header("Location: student_details.php?id=$student_id");
                 exit();
             } else {
-                header("Location: form.php");
+                header("Location: form.html");
+            //     exit();
+            }
+            // Display user ID for testing purposes
+            echo "User ID: " . $_SESSION['user_id'];
+            echo "Student ID: " . $_SESSION['student_id'];
+            
+
+
+            if(($_SESSION['student_id']) == null){
+                header("Location: form.html");
+                exit();
+            } else {
+                header("Location: student_details.php?id=$student_id");
                 exit();
             }
 
-
+            header("Location: student_details.php?id=$student_id");
+            exit();
         } else {
             // Invalid password
             $errorMessage = "Invalid email or password.";

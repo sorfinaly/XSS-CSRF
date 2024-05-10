@@ -144,23 +144,23 @@ textarea.form__input {
     </p>
     <div class="form__item">
       <label for="name" class="form__label">Name (Legal/Office): </label>
-      <input type="text" class="form__input" name="name" id="name" pattern="^[A-Za-z\s]+$" placeholder="Ali bin Adam"  >
+      <input type="text" class="form__input" name="name" id="name" pattern="^[A-Za-z\s]+$" placeholder="Ali bin Adam" required  >
       <span class="form__error">Only alphabets are allowed</span>
     </div>
     <div class="form__item">
       <label for="matricno" class="form__label">Matric Number: </label>
-      <input type="text" class="form__input form__input" name="matricno" id="matricno" pattern="^\d{7}$" placeholder="eg: XXXXXXX" >
+      <input type="text" class="form__input form__input" name="matricno" id="matricno" pattern="^\d{7}$" placeholder="eg: XXXXXXX" required>
       <span class="form__error">eg: 2017347</span>
     </div>
     <div class="form__item">
         <label for="curraddress" class="form__label">Current Address: </label>
-        <textarea maxlength="100" class="form__input" name="curraddress" id="curraddress" pattern="^[A-Za-z0-9/\s,\-.]+$" ></textarea>
+        <textarea maxlength="100" class="form__input" name="curraddress" id="curraddress" pattern="^[A-Za-z0-9/\s,\-.]+$" required></textarea>
         <span class="form__error">Special char allowed: . , / </span>
     </div>
     
     <div class="form__item">
       <label for="homeaddress" class="form__label">Home Address: </label>
-      <textarea maxlength="100" class="form__input" name="homeaddress" id="homeaddress" pattern="^[A-Za-z0-9/\s,\-.]+$" ></textarea>
+      <textarea maxlength="100" class="form__input" name="homeaddress" id="homeaddress" pattern="^[A-Za-z0-9/\s,\-.]+$" required></textarea>
       <span class="form__error">A sample error message</span>
     </div>
     <div class="form__item">
@@ -179,8 +179,7 @@ textarea.form__input {
       <span class="form__error">eg: 010-123-5690</span>
     </div>
     
-    <!-- Include CSRF Token in Form -->
-    <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+    <input type="hidden" name="id" value="<?php echo isset($_GET['id']) ? $_GET['id'] : ''; ?>">
 
     <div class="form__item">
 
@@ -286,59 +285,80 @@ textarea.form__input {
     return isValid;
   }
 
-  // Submit form with XSS defense and CSRF token
-  document.getElementById('studentform').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission
+//     document.getElementById('studentform').addEventListener('submit', function(event) {
+//     event.preventDefault(); // Prevent the default form submission
 
-    // Validate form inputs
-    if (!validateFormInputs()) {
-      return; // Exit if form inputs are invalid
+//     var formData = new FormData(this);
+
+//     // Check if ID parameter is present in URL
+//     var urlParams = new URLSearchParams(window.location.search);
+//     var id = urlParams.get('id');
+
+//     // Set ID in form data if present
+//     if (id) {
+//         formData.append('id', id);
+//     }
+
+//     // Send form data to form.php for processing
+//     fetch('crud.php', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error('Network response was not ok');
+//         }
+//         return response.text();
+//     })
+//     .then(data => {
+//         // Handle success response, if needed
+//         console.log(data);
+//         // Redirect to student_details.php or any other page as per your requirement
+//         window.location.href = 'student_details.php?id=' + id; // Redirect to student_details.php with ID parameter
+//     })
+//     .catch(error => {
+//         // Handle error
+//         console.error('There was an error!', error);
+//     });
+// });
+
+
+document.getElementById('studentform').addEventListener('submit', function(event) {
+  event.preventDefault(); // Prevent the default form submission
+
+  var formData = new FormData(this);
+
+  // Check if ID parameter is present in URL
+  var urlParams = new URLSearchParams(window.location.search);
+  var id = urlParams.get('id');
+
+  // Set ID in form data if present
+  if (id) {
+    formData.append('id', id);
+  }
+
+  // Send form data to crud.php for processing
+  fetch('crud.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
     }
-
-    var formData = new FormData(this);
-
-    // Check if ID parameter is present in URL
-    var urlParams = new URLSearchParams(window.location.search);
-    var id = urlParams.get('id');
-
-    // Set ID in form data if present
-    if (id) {
-      formData.append('id', id);
-    }
-
-    // Encode form data to prevent XSS attacks
-    for (var pair of formData.entries()) {
-      formData.set(pair[0], encodeHtmlEntities(pair[1]));
-    }
-
-    // Generate and append CSRF token
-    // var csrfToken = generateCsrfToken();
-    var csrfToken = document.getElementById('csrf_token').value;
-
-    formData.append('csrf_token', csrfToken);
-
-    // Send form data to crud.php for processing
-    fetch('crud.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.text();
-      })
-      .then(data => {
-        // Handle success response
-        console.log('Response from server:', data);
-        // Redirect to student_details.php or any other page as per your requirement
-        window.location.href = 'student_details.php?id=' + id; // Redirect as needed
-      })
-      .catch(error => {
-        // Handle network errors
-        console.error('There was an error with the network:', error);
-      });
+    return response.text();
+  })
+  .then(data => {
+    // Handle success response
+    console.log('Response from server:', data);
+    // Redirect to student_details.php or any other page as per your requirement
+    window.location.href = 'student_details.php?id=' + id; // Redirect to student_details.php with ID parameter
+  })
+  .catch(error => {
+    // Handle network errors
+    console.error('There was an error with the network:', error);
   });
+});
 
   </script>
 
