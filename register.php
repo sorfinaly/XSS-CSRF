@@ -8,13 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve form data
     $email = $_POST['email'];
     $password = $_POST['password'];
+    $role_id = 2; // Default role ID for regular users
 
     // Hash the password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Insert user into database
-    $stmt = $mysqli->prepare("INSERT INTO login (email, password) VALUES (?, ?)");
-    $stmt->bind_param("ss", $email, $hashed_password);
+    $stmt = $mysqli->prepare("INSERT INTO login (email, password, role_id) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssi", $email, $hashed_password, $role_id);
 
     if ($stmt->execute()) {
         // Registration successful
