@@ -2,6 +2,7 @@
 
 include 'db.php';
 session_start();
+include 'content-security-policy.php';
 
 // Check if the request method is DELETE
 if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
