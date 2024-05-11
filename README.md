@@ -18,7 +18,6 @@ This file is where user can do login where user insert email and password. If us
 This PHP script starts a session and includes a database connection file. It checks if an email and password are provided via a POST request. If so, it retrieves the user's data from the database based on the email. If a user is found, it verifies the password using password_verify. If successful, it sets session variables for user ID, email, and password, then redirects to `student_details.php`. If authentication fails, or no credentials are provided, it displays an error message and redirects back to the login page.
 
 
-
 ### 4. register.html
 This file is where user register new account where user insert email and password. After registration successful, user will prompt to click `login here`. 
 
@@ -32,13 +31,15 @@ This PHP script starts a session and includes a database connection file. If a P
 
 After successful login, this file will use the key-in email that user entered during logging. If the email already been registered in the database, student's record such as name, matrix number, address and more will be displayed by searching database using student's email. If student's email are not found in the database, student will be prompt to fill in the form in the `form.html`. This page will displayed student's record along with button update, delete and logout. 
 
+![image](https://github.com/sorfinaly/XSS-CSRF/assets/85787305/77b6ee6e-c224-4627-8a07-55a7b2a93248)
+
 ### 7. crud.php
 
-This file is containing various method such as insert, update delete and validation. This server-side will handle request from js if the student click on certain request. 
+This file is containing various method such as insert, update delete and validation. This server-side will handle request from js if the student click on certain request. In every functions, there will condition where the `role_id` need to be equal with 2 (normal user) or 3 (administrator) in order to use the `update` or `delete` button. There are also condition where the request token must be the same with token in the session. If both of these condition are met, only then user can use the `update` or `delete` button.
 
 ### 8. form.php
 
-This file contains the user interface for the student details form. It includes input fields for the user's name, matriculation number, email, addresses, and phone numbers. Each input field has a `pattern` attribute for basic client-side validation. Upon submission, the form sends the data to `form.php` for further validation and processing.
+This file contains the user interface for the student details form. It includes input fields for the user's name, matriculation number, email, addresses, and phone numbers. Each input field has a `pattern` attribute for basic client-side validation. Upon submission, the form sends the data to `form.php` for further validation and processing. Then `login_id' and `role_id` will be stored as well in the database.   
 
 ![image](https://github.com/sorfinaly/XSS-CSRF/assets/85787305/16447072-6034-4ac9-a734-fc31e8667b5e)
 
@@ -47,7 +48,8 @@ This file contains the user interface for the student details form. It includes 
 This file is to clear the session data then redirect user to `index.html`
 
 ### 10. content-security-policy.php
-
+ 
+In this file contains header specifies that content such as scripts, stylesheets, fonts, and images can only be loaded from specific trusted sources, including the current domain ('self'), external domain 'https://sorfina', and inline data. It permits inline scripts ('unsafe-inline') for script execution, allows stylesheets from 'https://fonts.googleapis.com', inline styles ('unsafe-inline'), and fonts from 'https://fonts.gstatic.com'. Images can only be loaded from the current domain and inline data. Additionally, it prohibits loading of any objects from external sources ('none').
 
 
 ## How the Files are Connected
